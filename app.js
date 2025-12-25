@@ -84,4 +84,32 @@ document.getElementById('searchBtn').addEventListener('click', () => {
             if (data.status === "success") updateUI(data);
             else alert("City not found! Try 'Delhi' or 'Mumbai'.");
         });
+
 });
+// --- New AI Logic Placeholder ---
+
+async function getAIPrediction(aqi, city) {
+    // In the final version, this will call the Azure AI API
+    // For now, it simulates a "Thinking" delay like a real AI
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            if (aqi > 100) {
+                resolve(`Azure AI Analysis: The current atmosphere in ${city} shows high particulate matter. Predicted risk for asthma patients: INCREASED. Suggesting immediate indoor transition.`);
+            } else {
+                resolve("Azure AI Analysis: Stable air quality detected. No significant long-term health anomalies predicted for today.");
+            }
+        }, 1500); // 1.5 second "thinking" delay
+    });
+}
+
+// Update your updateUI function to use this:
+async function updateUI(data) {
+    // ... your existing code ...
+    
+    // Add this at the bottom:
+    const aiText = document.getElementById('ai-prediction'); 
+    aiText.innerText = "🤖 AI is analyzing...";
+    
+    const prediction = await getAIPrediction(aqi, city);
+    aiText.innerText = prediction;
+}
