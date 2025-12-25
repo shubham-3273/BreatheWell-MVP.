@@ -1,8 +1,8 @@
+// 1. CONFIGURATION
 const API_KEY = '1a450bf9-a323-48d1-bceb-9f57d1bc63a7';
 let currentAQIData = null;
 
-// --- 1. THE LOGIC ENGINE (Functions you already wrote) ---
-
+// 2. HELPER FUNCTIONS (The "Logic")
 function getHealthWarnings(aqi) {
     if (aqi <= 50) return '<p>Air quality is good. No health concerns.</p>';
     if (aqi <= 100) return '<p>Acceptable. Sensitive groups should limit outdoor time.</p>';
@@ -23,9 +23,21 @@ function getConsequences(aqi) {
     return '<ul><li>Life-threatening outcomes.</li><li>Irreversible heart damage.</li></ul>';
 }
 
-// --- 2. THE UI UPDATER (Reusable for GPS or Search) ---
+// 3. AI MOCK FUNCTION (Microsoft Imagine Cup Requirement)
+async function getAIPrediction(aqi, city) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            if (aqi > 100) {
+                resolve(`Azure AI Analysis: The current atmosphere in ${city} shows high particulate matter. Predicted risk for respiratory fatigue: INCREASED. Suggesting indoor alternatives.`);
+            } else {
+                resolve("Azure AI Analysis: Stable air quality detected. No significant long-term health anomalies predicted for today.");
+            }
+        }, 1500); 
+    });
+}
 
-function updateUI(data) {
+// 4. UI UPDATER (How the data looks on screen)
+async function updateUI(data) {
     const resultDiv = document.getElementById('result');
     const aqi = data.data.current.pollution.aqius;
     const city = data.data.city;
@@ -52,97 +64,48 @@ function updateUI(data) {
         <div class="info-card warning-card"><h3>⚠️ Health Warnings</h3>${getHealthWarnings(aqi)}</div>
         <div class="info-card action-card"><h3>✅ What To Do</h3>${getRecommendations(aqi)}</div>
         <div class="info-card danger-card"><h3>❌ Future Risks</h3>${getConsequences(aqi)}</div>
+        
+        <div id="ai-assistant" style="margin-top: 25px; padding: 20px; border-radius: 15px; background: #f0f4ff; border: 1px solid #667eea; text-align: left;">
+            <h3 style="color: #4a5568; margin-bottom: 10px;">🤖 Microsoft Azure AI Insights</h3>
+            <p id="ai-prediction">Analyzing environmental patterns...</p>
+        </div>
     `;
-    resultDiv.style.display = 'block';
-}
-
-// --- 3. EVENT LISTENERS ---
-
-// GPS Button
-// --- Updated GPS Button Logic ---
-document.getElementById('checkBtn').addEventListener('click', async function() {
-    const resultDiv = document.getElementById('result');
-    resultDiv.style.display = 'block';
-    resultDiv.innerHTML = '<p>🔍 Getting your location...</p>';
     
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async function(position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            
-            resultDiv.innerHTML = '<p>📍 Location found! Fetching AQI data...</p>';
-            
-            try {
-                const response = await fetch(`https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${API_KEY}`);
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    // 1. Run the UI update you already have
-                    updateUI(data); 
-                    
-                    // 2. Trigger the AI Prediction specifically
-                    const aqi = data.data.current.pollution.aqius;
-                    const city = data.data.city;
-                    const aiText = document.getElementById('ai-prediction');
-                    
-                    aiText.innerText = "🤖 Azure AI is analyzing air patterns...";
-                    
-                    // Call the AI function we wrote earlier
-                    const prediction = await getAIPrediction(aqi, city);
-                    aiText.innerText = prediction;
-                    
-                } else {
-                    resultDiv.innerHTML = '<p>❌ Could not fetch data. Try again!</p>';
-                }
-            } catch (error) {
-                resultDiv.innerHTML = '<p>❌ Error connecting to services.</p>';
-            }
-        }, function(error) {
-            resultDiv.innerHTML = '<p>❌ Please allow location access to continue.</p>';
-        });
-    }
-});
-
-// Search Button
-document.getElementById('searchBtn').addEventListener('click', () => {
-    const city = document.getElementById('cityInput').value;
-    if (!city) return alert("Enter city!");
-    
-    // Using a simple API format: Note - IQAir needs state/country for specific city searches.
-    // For now, we search within a default (like India) to keep it simple for your MVP.
-    fetch(`https://api.airvisual.com/v2/city?city=${city}&state=Delhi&country=India&key=${API_KEY}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === "success") updateUI(data);
-            else alert("City not found! Try 'Delhi' or 'Mumbai'.");
-        });
-
-});
-// --- New AI Logic Placeholder ---
-
-async function getAIPrediction(aqi, city) {
-    // In the final version, this will call the Azure AI API
-    // For now, it simulates a "Thinking" delay like a real AI
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            if (aqi > 100) {
-                resolve(`Azure AI Analysis: The current atmosphere in ${city} shows high particulate matter. Predicted risk for asthma patients: INCREASED. Suggesting immediate indoor transition.`);
-            } else {
-                resolve("Azure AI Analysis: Stable air quality detected. No significant long-term health anomalies predicted for today.");
-            }
-        }, 1500); // 1.5 second "thinking" delay
-    });
-}
-
-// Update your updateUI function to use this:
-async function updateUI(data) {
-    // ... your existing code ...
-    
-    // Add this at the bottom:
-    const aiText = document.getElementById('ai-prediction'); 
-    aiText.innerText = "🤖 AI is analyzing...";
-    
+    // Trigger AI text update
+    const aiText = document.getElementById('ai-prediction');
     const prediction = await getAIPrediction(aqi, city);
     aiText.innerText = prediction;
 }
 
+// 5. EVENT LISTENERS (The "Main" triggers)
+document.getElementById('checkBtn').addEventListener('click', function() {
+    const resultDiv = document.getElementById('result');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<p>🔍 Requesting Location Access...</p>';
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            async function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                resultDiv.innerHTML = '<p>📍 Location Found. Fetching data...</p>';
+                
+                try {
+                    const response = await fetch(`https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${API_KEY}`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        updateUI(data);
+                    } else {
+                        resultDiv.innerHTML = '<p>❌ Error: ' + data.data.message + '</p>';
+                    }
+                } catch (err) {
+                    resultDiv.innerHTML = '<p>❌ Network Error. Please check your connection.</p>';
+                }
+            },
+            function(error) {
+                resultDiv.innerHTML = '<p>❌ Error: Please enable location in your browser settings.</p>';
+            }
+        );
+    }
+});
