@@ -1,4 +1,8 @@
 {
+  "scripts": {
+  "start": "node app.js",
+  "build": "npm run your-build-command-here" 
+}
   "name": "BreatheWell - AQI Health Checker",
   "short_name": "BreatheWell",
   "description": "Check air quality and get personalized health recommendations",
@@ -15,4 +19,5 @@
       "purpose": "any maskable"
     }
   ]
+
 }
