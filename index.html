@@ -3,61 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AQI Health App</title><link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="BreatheWell">
+    <title>My Azure App</title>
+    <style>
+        /* --- STYLING (The Look) --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; }
 
-    <link rel="stylesheet" href="style.css">
+        /* Navbar Style */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0078d4; /* Azure Blue */
+            padding: 0 2rem;
+            height: 60px;
+            color: white;
+        }
+        .nav-links { display: flex; list-style: none; }
+        .nav-links li { padding: 0 15px; }
+        .nav-links a { color: white; text-decoration: none; }
+
+        /* Main Content Box */
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 { margin-bottom: 20px; color: #333; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            background: #0078d4;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #005a9e; }
+        #status { margin-top: 15px; font-weight: bold; text-align: center; }
+    </style>
 </head>
-    <nav class="navbar">
-    <div class="logo">MyAzureApp</div>
-    <ul class="nav-links">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Dashboard</a></li>
-        <li><a href="#">Profile</a></li>
-    </ul>
-    <div class="burger">
-        <div></div>
-        <div></div>
-        <div></div>
-    </div>
-</nav>
-
-<div class="container">
-    </div>
 <body>
-    <div id="ai-assistant" style="margin-top: 25px; padding: 20px; border-radius: 15px; background: #f0f4ff; border: 1px solid #667eea;">
-    <h3 style="color: #4a5568; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-        🤖 Microsoft Azure AI Insights
-    </h3>
-    <p id="ai-prediction" style="font-style: italic; color: #718096;">
-        Waiting for data to analyze...
-    </p>
-</div>
+
+    <nav class="navbar">
+        <div class="logo"><strong>Azure</strong>Project</div>
+        <ul class="nav-links">
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Users</a></li>
+        </ul>
+    </nav>
+
     <div class="container">
-        <div class="container">
-    <div class="app-header">
-        <div class="app-logo">🌍</div>
-        <h1>BreatheWell</h1>
-        <p class="subtitle">Real-time Air Quality & Health Insights</p>
+        <h2>Add New User</h2>
+        <input type="text" id="userName" placeholder="Full Name">
+        <input type="email" id="userEmail" placeholder="Email Address">
+        <button onclick="sendData()">Save to Database</button>
+        <p id="status"></p>
     </div>
 
-    <div class="search-box">
-        <input type="text" id="cityInput" placeholder="Enter City (e.g. Delhi, London)">
-        <button id="searchBtn">Search City</button>
-    </div>
+    <script>
+        /* --- LOGIC (The Action) --- */
+        async function sendData() {
+            const name = document.getElementById('userName').value;
+            const email = document.getElementById('userEmail').value;
+            const status = document.getElementById('status');
 
-    <div class="divider"><span>OR</span></div>
+            if(!name || !email) {
+                status.style.color = "red";
+                status.innerText = "Please fill in all fields.";
+                return;
+            }
 
-    <button id="checkBtn">📍 Use My Current Location</button>
-    
-    <div id="result"></div>
-</div>
-    </div>
-    <script src="app.js"></script>
+            status.style.color = "orange";
+            status.innerText = "Connecting to Azure...";
+
+            try {
+                // This calls the backend API that talks to SQL
+                const response = await fetch('/api/addUser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    status.style.color = "green";
+                    status.innerText = "✅ Success: Saved to SQL!";
+                } else {
+                    status.style.color = "red";
+                    status.innerText = "❌ Error: " + result.error;
+                }
+            } catch (err) {
+                status.style.color = "red";
+                status.innerText = "❌ Connection Failed (Is the backend ready?)";
+            }
+        }
+    </script>
 </body>
-
 </html>
-
